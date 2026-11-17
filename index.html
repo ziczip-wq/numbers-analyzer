@@ -30,7 +30,7 @@ footer{font-size:11px;color:#8791a2;text-align:center;padding:20px}
 
 </head>
 <body>
-<header><div><h1>NUMBERS ANALYZER</h1><p>1994年〜2026年 全14,216件登録済み｜当選履歴／検索／数字分析／予想メモ｜ミニ分析タブ切替版 v6.2</p></div><div class="actions"><button class="soft" id="importBtn">CSV取り込み</button><button class="soft" id="exportBtn">CSV書き出し</button><button class="primary" id="addBtn">＋ 当選結果を追加</button><input id="fileInput" type="file" accept=".csv,text/csv" class="hidden"></div></header>
+<header><div><h1>NUMBERS ANALYZER</h1><p>1994年〜2026年 全14,216件登録済み｜当選履歴／検索／数字分析／予想メモ｜ミニ分析タブ切替版 v6.3</p></div><div class="actions"><button class="soft" id="importBtn">CSV取り込み</button><button class="soft" id="exportBtn">CSV書き出し</button><button class="primary" id="addBtn">＋ 当選結果を追加</button><input id="fileInput" type="file" accept=".csv,text/csv" class="hidden"></div></header>
 <main>
 <section class="toolbar">
  <div class="field"><label>対象</label><select id="game"><option value="3">ナンバーズ3</option><option value="4">ナンバーズ4</option><option value="5">ミニ</option></select></div>
@@ -74,7 +74,17 @@ footer{font-size:11px;color:#8791a2;text-align:center;padding:20px}
    <h2>ミニ数字ランキング（00〜99）</h2><div class="inline"><div class="field"><label>表示件数</label><select id="miniRankLimit"><option value="20">上位20件</option><option value="50">上位50件</option><option value="100">全100件</option></select></div><button class="primary" id="miniRankBtn">ランキング集計</button></div><div id="miniRankResult"></div>
   </section>
   <section class="mini-panel hidden" data-mini-panel="period">
-   <h2 style="margin-top:20px">ミニ・月別／曜日別分析</h2><div class="inline"><div class="field"><label>集計方法</label><select id="miniPeriodMode"><option value="month">月別（全年度合算）</option><option value="yearmonth">年月指定</option><option value="weekday">曜日別</option></select></div><div class="field"><label>月</label><select id="miniPeriodMonth"><option value="1">1月</option><option value="2">2月</option><option value="3">3月</option><option value="4">4月</option><option value="5">5月</option><option value="6">6月</option><option value="7">7月</option><option value="8">8月</option><option value="9">9月</option><option value="10">10月</option><option value="11">11月</option><option value="12">12月</option></select></div><div class="field"><label>年</label><input id="miniPeriodYear" type="number" placeholder="例：2026"></div><div class="field"><label>曜日</label><select id="miniPeriodWeek"><option value="1">月曜日</option><option value="2">火曜日</option><option value="3">水曜日</option><option value="4">木曜日</option><option value="5">金曜日</option><option value="0">日曜日</option><option value="6">土曜日</option></select></div><button class="primary" id="miniPeriodBtn">集計</button></div><div id="miniPeriodResult"></div>
+   <h2 style="margin-top:20px">ミニ・月別／曜日別検索</h2>
+   <div class="inline">
+    <div class="field"><label>検索方法</label><select id="miniPeriodMode"><option value="month">月別検索</option><option value="weekday">曜日別検索</option></select></div>
+    <div class="field" id="miniPeriodMonthFields"><label>月</label><select id="miniPeriodMonth"><option value="1">1月</option><option value="2">2月</option><option value="3">3月</option><option value="4">4月</option><option value="5">5月</option><option value="6">6月</option><option value="7">7月</option><option value="8">8月</option><option value="9">9月</option><option value="10">10月</option><option value="11">11月</option><option value="12">12月</option></select></div>
+    <div class="field" id="miniPeriodYearField"><label>年（空欄なら全年度）</label><input id="miniPeriodYear" type="number" min="1900" max="2200" placeholder="例：2026"></div>
+    <div class="field hidden" id="miniPeriodWeekFields"><label>曜日</label><select id="miniPeriodWeek"><option value="1">月曜日</option><option value="2">火曜日</option><option value="3">水曜日</option><option value="4">木曜日</option><option value="5">金曜日</option><option value="0">日曜日</option><option value="6">土曜日</option></select></div>
+    <div class="field hidden" id="miniPeriodLimitField"><label>対象回数</label><select id="miniPeriodLimit"><option value="15">過去15回</option><option value="30">過去30回</option><option value="50">過去50回</option><option value="0">全て</option></select></div>
+    <button class="primary" id="miniPeriodBtn">検索</button>
+   </div>
+   <p class="muted">ナンバーズ3の当選番号の下2桁をミニ数字として、該当する履歴を古い順に表示します。</p>
+   <div id="miniPeriodResult"></div>
   </section>
   <section class="mini-panel hidden" data-mini-panel="memo">
    <h2 style="margin-top:20px">ミニ・狙い数字メモ</h2><div class="inline"><div class="field"><label>ミニ数字</label><input id="miniMemoNumber" inputmode="numeric" maxlength="2" placeholder="例：23"></div><div class="field" style="min-width:180px"><label>メモ</label><input id="miniMemoText" placeholder="例：次回候補"></div><button class="primary" id="miniMemoAdd">メモを保存</button></div><div class="note-list" id="miniMemoList" style="margin-top:12px"></div>
@@ -151,7 +161,29 @@ function renderMiniMemos(){$('miniMemoList').innerHTML=memos.map((m,i)=>({...m,_
 $('miniMemoAdd').onclick=()=>{let n=$('miniMemoNumber').value.trim(),t=$('miniMemoText').value.trim();if(!/^\d{2}$/.test(n)){alert('00〜99の2桁で入力してください。');return}memos.push({game:5,number:n,text:t,date:new Date().toLocaleDateString('ja-JP')});saveMemos();$('miniMemoNumber').value=$('miniMemoText').value='';renderMiniMemos()};
 $('miniNextBtn').onclick=renderMiniNext;
 $('miniRankBtn').onclick=()=>{let rows=miniRows(),map=Array.from({length:100},(_,i)=>[String(i).padStart(2,'0'),[]]);rows.forEach(d=>map[Number(d.mini)][1].push(d));let ranked=map.sort((a,b)=>b[1].length-a[1].length||a[0].localeCompare(b[0])),n=Number($('miniRankLimit').value);if(n)ranked=ranked.slice(0,n);$('miniRankResult').innerHTML=`<div class="table-wrap"><table><thead><tr><th>順位</th><th>ミニ数字</th><th>出現回数</th><th>最新出現</th><th>出現回号・日付</th></tr></thead><tbody>${ranked.map(([num,arr],i)=>`<tr><td>${i+1}</td><td class="digits">${num}</td><td>${arr.length}回</td><td>${arr.length?arr.at(-1).date:'—'}</td><td>${arr.map(d=>`第${d.no}回（${d.date}）`).join('、')||'—'}</td></tr>`).join('')}</tbody></table></div>`};
-$('miniPeriodBtn').onclick=()=>{let mode=$('miniPeriodMode').value,rows=miniRows(),m=Number($('miniPeriodMonth').value),y=Number($('miniPeriodYear').value),w=Number($('miniPeriodWeek').value);rows=rows.filter(d=>{let dt=new Date(d.date+'T00:00:00');return mode==='month'?dt.getMonth()+1===m:mode==='yearmonth'?dt.getMonth()+1===m&&(!y||dt.getFullYear()===y):dt.getDay()===w});let map={};rows.forEach(d=>(map[d.mini]??=[]).push(d));let rank=Object.entries(map).sort((a,b)=>b[1].length-a[1].length||a[0].localeCompare(b[0]));$('miniPeriodResult').innerHTML=`<p class="muted">対象 ${rows.length}回</p>`+(rank.length?`<div class="table-wrap"><table><thead><tr><th>順位</th><th>ミニ数字</th><th>出現回数</th><th>出現回号・日付</th></tr></thead><tbody>${rank.map(([n,a],i)=>`<tr><td>${i+1}</td><td class="digits">${n}</td><td>${a.length}</td><td>${a.map(d=>`第${d.no}回（${d.date}）`).join('、')}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">該当データがありません。</div>')};
+function updateMiniPeriodFields(){
+ const isWeek=$('miniPeriodMode').value==='weekday';
+ $('miniPeriodMonthFields').classList.toggle('hidden',isWeek);
+ $('miniPeriodYearField').classList.toggle('hidden',isWeek);
+ $('miniPeriodWeekFields').classList.toggle('hidden',!isWeek);
+ $('miniPeriodLimitField').classList.toggle('hidden',!isWeek);
+}
+$('miniPeriodMode').onchange=updateMiniPeriodFields;
+$('miniPeriodBtn').onclick=()=>{
+ let rows=miniRows(),mode=$('miniPeriodMode').value;
+ if(mode==='weekday'){
+  const w=Number($('miniPeriodWeek').value),limit=Number($('miniPeriodLimit').value);
+  rows=rows.filter(d=>new Date(d.date+'T00:00:00').getDay()===w);
+  if(limit)rows=rows.slice(-limit);
+ }else{
+  const m=Number($('miniPeriodMonth').value),year=$('miniPeriodYear').value.trim();
+  rows=rows.filter(d=>{const dt=new Date(d.date+'T00:00:00');return dt.getMonth()+1===m&&(!year||dt.getFullYear()===Number(year));});
+ }
+ $('miniPeriodResult').innerHTML=rows.length
+  ? `<p class="muted">該当 ${rows.length}回</p><div class="table-wrap"><table><thead><tr><th>回号</th><th>日付</th><th>ミニ数字</th><th>ナンバーズ3当選番号</th><th>曜日</th></tr></thead><tbody>${rows.map(d=>`<tr><td>第${d.no}回</td><td>${d.date}</td><td class="digits">${d.mini}</td><td>${d.number}</td><td>${week(d.date)}</td></tr>`).join('')}</tbody></table></div>`
+  : '<div class="empty">該当する当選データがありません。</div>';
+};
+updateMiniPeriodFields();
 $('miniHistoryBtn').onclick=()=>{let q=$('miniSearch').value.trim(),rows=miniRows();if(q&&!/^\d{1,2}$/.test(q)){$('miniHistoryResult').innerHTML='<div class="empty">1〜2桁で入力してください。</div>';return}if(q)rows=rows.filter(d=>d.mini===q.padStart(2,'0'));let n=Number($('miniHistoryLimit').value);if(n)rows=rows.slice(-n);$('miniHistoryResult').innerHTML=rows.length?`<div class="table-wrap"><table><thead><tr><th>回号</th><th>日付</th><th>ミニ数字</th><th>ナンバーズ3当選番号</th><th>曜日</th></tr></thead><tbody>${rows.map(d=>`<tr><td>第${d.no}回</td><td>${d.date}</td><td class="digits">${d.mini}</td><td>${d.number}</td><td>${week(d.date)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">履歴がありません。</div>'};
 function n4Triples(number){let out=new Set();for(let a=0;a<4;a++)for(let b=a+1;b<4;b++)for(let c=b+1;c<4;c++)out.add([number[a],number[b],number[c]].sort().join(''));return [...out]}
 $('tripleRankBtn').onclick=()=>{let rows=draws.filter(d=>d.game===4).sort((a,b)=>a.date.localeCompare(b.date)||Number(a.no)-Number(b.no)),mode=$('triplePeriod').value,m=Number($('tripleMonth').value),y=Number($('tripleYear').value),w=Number($('tripleWeek').value);rows=rows.filter(d=>{let dt=new Date(d.date+'T00:00:00');return mode==='all'?true:mode==='month'?dt.getMonth()+1===m:mode==='yearmonth'?dt.getMonth()+1===m&&(!y||dt.getFullYear()===y):dt.getDay()===w});let map={};rows.forEach(d=>n4Triples(d.number).forEach(n=>(map[n]??=[]).push(d)));let rank=Object.entries(map).sort((a,b)=>b[1].length-a[1].length||a[0].localeCompare(b[0])),lim=Number($('tripleLimit').value);if(lim)rank=rank.slice(0,lim);$('tripleRankResult').innerHTML=`<p class="muted">対象 ${rows.length}回・組み合わせ ${Object.keys(map).length}種類</p>`+(rank.length?`<div class="table-wrap"><table><thead><tr><th>順位</th><th>3桁組み合わせ</th><th>出現回数</th><th>出現回号・日付</th></tr></thead><tbody>${rank.map(([n,a],i)=>`<tr><td>${i+1}</td><td class="digits">${n}</td><td>${a.length}回</td><td>${a.map(d=>`第${d.no}回（${d.date}）`).join('、')}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">該当データがありません。</div>')};
