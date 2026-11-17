@@ -30,7 +30,7 @@ footer{font-size:11px;color:#8791a2;text-align:center;padding:20px}
 
 </head>
 <body>
-<header><div><h1>NUMBERS ANALYZER</h1><p>1994年〜2026年 全14,216件登録済み｜当選履歴／検索／数字分析／予想メモ</p></div><div class="actions"><button class="soft" id="importBtn">CSV取り込み</button><button class="soft" id="exportBtn">CSV書き出し</button><button class="primary" id="addBtn">＋ 当選結果を追加</button><input id="fileInput" type="file" accept=".csv,text/csv" class="hidden"></div></header>
+<header><div><h1>NUMBERS ANALYZER</h1><p>1994年〜2026年 全14,216件登録済み｜当選履歴／検索／数字分析／予想メモ｜ミニ切替版 v5</p></div><div class="actions"><button class="soft" id="importBtn">CSV取り込み</button><button class="soft" id="exportBtn">CSV書き出し</button><button class="primary" id="addBtn">＋ 当選結果を追加</button><input id="fileInput" type="file" accept=".csv,text/csv" class="hidden"></div></header>
 <main>
 <section class="toolbar">
  <div class="field"><label>対象</label><select id="game"><option value="3">ナンバーズ3</option><option value="4">ナンバーズ4</option><option value="5">ミニ</option></select></div>
@@ -137,7 +137,21 @@ iPhoneではSafariの共有ボタン →「ホーム画面に追加」でアプ�
 
 <script>
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(err => console.warn('Offline setup:', err)));
+  let reloadedAfterWorkerUpdate = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!reloadedAfterWorkerUpdate) {
+      reloadedAfterWorkerUpdate = true;
+      window.location.reload();
+    }
+  });
+  window.addEventListener('load', async () => {
+    try {
+      const registration = await navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' });
+      await registration.update();
+    } catch (err) {
+      console.warn('Offline setup:', err);
+    }
+  });
 }
 if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
   const hint = document.getElementById('installHint');
